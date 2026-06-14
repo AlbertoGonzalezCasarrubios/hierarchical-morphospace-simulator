@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Morphospace Lab — González Casarrubios (2026)</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(','\\)']], displayMath: [['\\[','\\]']] },
+      options: { skipHtmlTags: ['script','noscript','style','textarea'] },
+      startup: { typeset: false }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+  <script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }</script>
+
+  <style>
+    :root {
+      --ink:       #0d1b2a;
+      --ink-mid:   #3a526b;
+      --ink-light: #7a92a8;
+      --ink-faint: #d0dde8;
+      --bg:        #f5f8fb;
+      --surface:   #ffffff;
+      --theo-c:    #2e4057;
+      --onto-c:    #1a5c3a;
+      --onto-dim:  #d0ede0;
+      --epi-c:     #5b1f9e;
+      --epi-dim:   #ebe5f8;
+      --warn:      #b91c1c;
+      --r:         8px;
+      --mono: 'IBM Plex Mono', monospace;
+      --serif:'IBM Plex Serif', serif;
+      --sans: 'IBM Plex Sans', sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 15px; }
+    body { font-family: var(--sans); background: var(--bg); color: var(--ink); min-height: 100vh; overflow-x: hidden; }
+
+    /* ── HEADER ── */
+    .hdr {
+      background: var(--surface);
+      border-bottom: 2px solid var(--ink-faint);
+      padding: 0 2rem;
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+      min-height: 62px;
+    }
+    .hdr-left { display: flex; align-items: center; gap: 1.4rem; }
+    .hdr-title { font-family: var(--serif); font-size: 1.2rem; font-weight: 600; color: var(--ink); letter-spacing: -.01em; }
+    .hdr-sub   { font-family: var(--mono);  font-size: 0.68rem; color: var(--ink-light); letter-spacing: .06em; text-transform: uppercase; margin-top: 1px; }
+    .hdr-divider { width: 1px; height: 34px; background: var(--ink-faint); }
+    .hdr-controls { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+
+    /* ── BUTTONS ── */
+    .btn {
+      font-family: var(--mono); font-size: 0.7rem; font-weight: 600;
+      letter-spacing: .07em; text-transform: uppercase;
+      padding: .42rem .85rem; border-radius: var(--r);
+      border: 1.5px solid var(--ink-faint);
+      background: var(--surface); color: var(--ink-mid);
+      cursor: pointer; white-space: nowrap; transition: all .13s;
+    }
+    .btn:hover { border-color: var(--ink-light); color: var(--ink); background: var(--bg); }
+    .btn.on  { background: var(--ink); color: #fff; border-color: var(--ink); }
+    .btn.pri { background: var(--theo-c); color: #fff; border-color: var(--theo-c); }
+    .btn-group { display: flex; border: 1.5px solid var(--ink-faint); border-radius: var(--r); overflow: hidden; }
+    .btn-group .btn { border: none; border-radius: 0; border-right: 1.5px solid var(--ink-faint); }
+    .btn-group .btn:last-child { border-right: none; }
+    .btn-group .btn.on { background: var(--ink); color: #fff; }
+
+    /* ── GRID ── */
+    .page { padding: 1rem 2rem 5rem; max-width: 1640px; margin: 0 auto; }
+    .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.4rem; }
+
+    /* ── PANEL ── */
+    .panel { display: flex; flex-direction: column; gap: .75rem; }
+
+    /* Fixed-height header so all canvases start at the same vertical position */
+    .panel-hdr {
+      height: 78px;
+      display: flex; flex-direction: column; justify-content: space-between;
+      padding-bottom: .4rem;
+      border-bottom: 2.5px solid var(--ink-faint);
+    }
+    .panel-hdr-top { display: flex; align-items: flex-start; justify-content: space-between; gap: .5rem; }
+    .panel-eyebrow { font-family: var(--mono); font-size: .65rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-light); margin-bottom: .3rem; }
+    .panel-title   { font-family: var(--serif); font-size: 1.15rem; font-weight: 600; color: var(--ink); }
+    .panel-title.c-onto { color: var(--onto-c); }
+    .panel-title.c-epi  { color: var(--epi-c); }
+
+    /* H value sits on the right of the title row — identical in all 3 panels */
+    .h-row { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; }
+    .h-value { font-family: var(--mono); font-size: .82rem; font-weight: 600; color: var(--ink); white-space: nowrap; }
+
+    .ebar-wrap { height: 3px; background: var(--ink-faint); border-radius: 2px; overflow: hidden; margin-top: .35rem; }
+    .ebar-fill { height: 100%; border-radius: 2px; transition: width .35s; }
+    .eb-theo { background: var(--theo-c); }
+    .eb-onto { background: var(--onto-c); }
+    .eb-epi  { background: var(--epi-c); }
+
+    .panel-formula { font-size: .88rem; color: var(--ink-mid); min-height: 1.5rem; display: block; }
+
+    /* gap strip shown BELOW the canvas */
+    .gap-strip {
+      display: flex; align-items: center; justify-content: center; gap: .5rem;
+      padding: .35rem .75rem; border-radius: var(--r);
+      font-family: var(--mono); font-size: .7rem; font-weight: 600; letter-spacing: .05em;
+    }
+    .gap-strip-label { color: inherit; font-weight: 400; opacity: .75; }
+    .gs-onto { background: var(--onto-dim); color: var(--onto-c); border: 1px solid #a7d9be; }
+    .gs-epi  { background: var(--epi-dim);  color: var(--epi-c);  border: 1px solid #c4aef5; }
+
+    /* ── CANVAS ── */
+    .canvas-wrap {
+      aspect-ratio: 1 / 1;
+      background: #fff;
+      border: 1.5px solid var(--ink-faint);
+      border-radius: var(--r);
+      overflow: hidden;
+      box-shadow: 0 1px 6px rgba(13,27,42,.06);
+    }
+
+    /* ── CONTROLS ── */
+    .ctrl-box {
+      background: var(--surface);
+      border: 1.5px solid var(--ink-faint);
+      border-radius: var(--r);
+      padding: 1rem 1.1rem;
+      display: flex; flex-direction: column; gap: .75rem;
+    }
+    .ctrl-row { display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
+    .cl { font-family: var(--mono); font-size: .66rem; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--ink-light); }
+    .cv { font-family: var(--mono); font-size: .78rem; font-weight: 600; color: var(--ink); }
+    .cv-onto { color: var(--onto-c); }
+    .cv-epi  { color: var(--epi-c); }
+
+    input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+    input[type=range]::-webkit-slider-runnable-track { height: 2px; background: var(--ink-faint); border-radius: 1px; }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%;
+      background: var(--ink); margin-top: -6px; cursor: pointer;
+      border: 2.5px solid #fff; box-shadow: 0 0 0 1.5px var(--ink-faint);
+    }
+    input[type=range]:focus { outline: none; }
+
+    .pat-btns { display: flex; gap: .35rem; }
+    .pat-btn {
+      flex: 1; padding: .32rem 0;
+      font-family: var(--mono); font-size: .63rem; font-weight: 600;
+      letter-spacing: .05em; text-transform: uppercase;
+      border: 1.5px solid var(--ink-faint); border-radius: var(--r);
+      background: var(--surface); color: var(--ink-light); cursor: pointer; transition: all .12s;
+    }
+    .pat-btn.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+    /* ── METRICS ── */
+    .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .55rem; padding-top: .65rem; border-top: 1.5px solid var(--ink-faint); }
+    .mc { background: var(--bg); border: 1.5px solid var(--ink-faint); border-radius: var(--r); padding: .6rem .75rem; display: flex; flex-direction: column; gap: .12rem; }
+    .mc-label { font-family: var(--mono); font-size: .6rem; color: var(--ink-light); letter-spacing: .07em; text-transform: uppercase; }
+    .mc-val   { font-family: var(--mono); font-size: 1.05rem; font-weight: 600; color: var(--ink); }
+    .mc-sub   { font-family: var(--mono); font-size: .6rem; color: var(--ink-light); }
+    .warn { color: var(--warn); }
+    .ok   { color: var(--onto-c); }
+
+    /* ── POPOVER ── */
+    .pop-wrap { position: relative; }
+    .pop {
+      position: absolute; top: calc(100% + 9px); right: 0;
+      background: var(--surface); border: 1.5px solid var(--ink-faint);
+      border-radius: 10px; padding: 1.1rem; width: 230px;
+      box-shadow: 0 8px 36px rgba(13,27,42,.13);
+      z-index: 150; opacity: 0; transform: translateY(-6px); pointer-events: none; transition: all .15s;
+    }
+    .pop.open { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .pop-title { font-family: var(--mono); font-size: .62rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-light); margin-bottom: .8rem; }
+    .pop-row { margin-bottom: .65rem; }
+
+    /* ── STATUS BAR ── */
+    .statusbar {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: var(--ink); color: #c8d6e2;
+      display: flex; align-items: center; gap: 2rem; flex-wrap: wrap;
+      padding: .5rem 2rem;
+      font-family: var(--mono); font-size: .66rem; letter-spacing: .06em;
+      z-index: 200;
+    }
+    .si { display: flex; gap: .4rem; align-items: center; }
+    .sl { color: #7a92a8; text-transform: uppercase; }
+    .sv { color: #e2eaf2; font-weight: 600; }
+
+    /* ── MODAL ── */
+    .overlay {
+      position: fixed; inset: 0; z-index: 300;
+      background: rgba(13,27,42,.55); backdrop-filter: blur(3px);
+      display: flex; align-items: center; justify-content: center; padding: 1rem;
+    }
+    .modal {
+      background: var(--surface); border: 1.5px solid var(--ink-faint);
+      border-radius: 12px; max-width: 540px; width: 100%;
+      max-height: 88vh; overflow-y: auto;
+      padding: 2rem; position: relative;
+      box-shadow: 0 20px 60px rgba(13,27,42,.2);
+    }
+    .modal-close { position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 1.1rem; cursor: pointer; color: var(--ink-light); }
+    .modal-ey { font-family: var(--mono); font-size: .63rem; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-light); margin-bottom: .5rem; }
+    .modal-h  { font-family: var(--serif); font-size: 1.25rem; font-weight: 600; color: var(--ink); margin-bottom: 1rem; }
+    .modal-body { font-size: .9rem; line-height: 1.7; color: var(--ink-mid); }
+    .modal-body p { margin-bottom: .7rem; }
+    .modal-body ul { padding-left: 1.2rem; margin-bottom: .7rem; }
+    .modal-ref { background: var(--bg); border: 1.5px solid var(--ink-faint); border-radius: var(--r); padding: 1rem; margin-top: 1rem; font-size: .8rem; font-family: var(--serif); line-height: 1.65; color: var(--ink-mid); }
+    .modal-ref-lbl { font-family: var(--mono); font-size: .6rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-light); display: block; margin-bottom: .4rem; }
+    .modal-ref p + p { margin-top: .7rem; border-top: 1px solid var(--ink-faint); padding-top: .7rem; }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed; top: 74px; left: 50%; transform: translateX(-50%);
+      background: var(--ink); color: #e2eaf2;
+      font-family: var(--mono); font-size: .7rem; letter-spacing: .06em;
+      padding: .5rem 1.3rem; border-radius: var(--r);
+      box-shadow: 0 4px 18px rgba(13,27,42,.25);
+      z-index: 400; pointer-events: none; animation: fadeT 3s forwards;
+    }
+    @keyframes fadeT { 0%{opacity:0} 10%{opacity:1} 80%{opacity:1} 100%{opacity:0} }
+
+    /* ── HIDE DATA ── */
+    .hide-data .h-value,
+    .hide-data .ebar-wrap,
+    .hide-data .gap-badge,
+    .hide-data .statusbar,
+    .hide-data .mc { display: none !important; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 920px) {
+      .grid3 { grid-template-columns: 1fr; }
+      .hdr { flex-wrap: wrap; padding: .8rem 1rem; min-height: auto; }
+      .page { padding: 1rem; }
+      .panel-hdr { height: auto; }
+    }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { ConvexGeometry } from 'three/addons/geometries/ConvexGeometry.js';
+
+const { useState, useMemo, useEffect, useRef, useCallback } = React;
+
+/* ── CAMERA SYNC ── */
+const CAM = { pos: new THREE.Vector3(180,140,180), tgt: new THREE.Vector3(0,0,0), busy: false };
+const syncSet = new Set();
+const notifySync = id => {
+  if (CAM.busy) return;
+  CAM.busy = true;
+  syncSet.forEach(fn => fn(id));
+  CAM.busy = false;
+};
+
+/* ── UTILS ── */
+const log2  = n  => n > 0 ? Math.log2(n) : 0;
+const f2    = v  => v.toFixed(2);
+const COLORS = ['#0c4a6e','#075985','#0369a1','#0284c7','#0ea5e9','#38bdf8','#1e3a5f','#164e63','#155e75','#134e4a','#065f46','#1e40af','#1d4ed8','#4338ca','#3730a3','#312e81','#2e1065','#4a044e','#701a75','#86198f','#a21caf','#c026d3','#7c3aed','#6d28d9','#5b21b6'];
+const getColor = i => COLORS[i % COLORS.length];
+
+const circleTex = (() => {
+  const c = document.createElement('canvas'); c.width = c.height = 64;
+  const x = c.getContext('2d');
+  x.beginPath(); x.arc(32,32,28,0,Math.PI*2); x.fillStyle='#fff'; x.fill();
+  return new THREE.CanvasTexture(c);
+})();
+
+function hull2D(pts) {
+  if (pts.length < 3) return pts;
+  const s = [...pts].sort((a,b)=>a.x-b.x||a.y-b.y);
+  const cross = (o,a,b) => (a.x-o.x)*(b.y-o.y)-(a.y-o.y)*(b.x-o.x);
+  const L=[], U=[];
+  for(const p of s){ while(L.length>=2&&cross(L[L.length-2],L[L.length-1],p)<=0)L.pop(); L.push(p); }
+  for(let i=s.length-1;i>=0;i--){ const p=s[i]; while(U.length>=2&&cross(U[U.length-2],U[U.length-1],p)<=0)U.pop(); U.push(p); }
+  U.pop(); L.pop(); return L.concat(U);
+}
+
+/* ── FORMULA (MathJax) ── */
+const Formula = ({ tex }) => {
+  const ref = useRef(null);
+  useEffect(() => {
+    if (!ref.current || !window.MathJax) return;
+    ref.current.innerHTML = `\\(${tex}\\)`;
+    window.MathJax.typesetPromise([ref.current]).catch(()=>{});
+  }, [tex]);
+  return <span ref={ref} className="panel-formula" />;
+};
+
+/* ── ENTROPY BAR ── */
+const EBar = ({ cur, max, cls }) => (
+  <div className="ebar-wrap">
+    <div className={`ebar-fill ${cls}`} style={{width:`${max>0?Math.min(100,(cur/max)*100):0}%`}} />
+  </div>
+);
+
+/* ── 3D VIEW ── */
+const V3D = ({ id, mode, data, autoRotate, sync, camPreset, ps, op, taxo }) => {
+  const mount = useRef(null), ctrl = useRef(null), cam = useRef(null);
+
+  useEffect(() => {
+    if (!camPreset || !cam.current || !ctrl.current) return;
+    const c=cam.current, ct=ctrl.current, d=220;
+    const p={iso:[d,d*.8,d],top:[0,d*1.5,0],front:[0,0,d*1.5],side:[d*1.5,0,0],h34:[d,d*.5,d*.3],l34:[d,-d*.2,d]};
+    const v=p[camPreset]||p.iso;
+    c.position.set(...v); ct.target.set(0,0,0);
+    c.updateProjectionMatrix(); ct.update();
+    CAM.pos.copy(c.position); CAM.tgt.copy(ct.target);
+  }, [camPreset]);
+
+  useEffect(() => {
+    if (!sync) return;
+    const fn = src => {
+      if (src===id||!ctrl.current||!cam.current) return;
+      cam.current.position.copy(CAM.pos); ctrl.current.target.copy(CAM.tgt);
+      cam.current.updateProjectionMatrix(); ctrl.current.update();
+    };
+    syncSet.add(fn); return ()=>syncSet.delete(fn);
+  }, [sync, id]);
+
+  useEffect(() => {
+    if (!mount.current) return;
+    const W=mount.current.clientWidth, H=mount.current.clientHeight;
+    const scene=new THREE.Scene(); scene.background=new THREE.Color(0xffffff);
+    const camera=new THREE.PerspectiveCamera(35,W/H,.1,2000);
+    if(sync) camera.position.copy(CAM.pos); else camera.position.set(160,120,160);
+    cam.current=camera;
+    const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
+    renderer.setSize(W,H); renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+    mount.current.innerHTML=''; mount.current.appendChild(renderer.domElement);
+    const controls=new OrbitControls(camera,renderer.domElement);
+    controls.enableDamping=true; controls.dampingFactor=.18;
+    controls.autoRotate=autoRotate&&!sync; controls.autoRotateSpeed=.8;
+    ctrl.current=controls;
+    controls.addEventListener('change',()=>{ if(sync&&!CAM.busy){CAM.pos.copy(camera.position);CAM.tgt.copy(controls.target);notifySync(id);} });
+    scene.add(new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(100,100,100)),new THREE.LineBasicMaterial({color:0xc8d6e2,transparent:true,opacity:.7})));
+    scene.add(new THREE.AmbientLight(0xffffff,.9));
+    const dl=new THREE.DirectionalLight(0xffffff,.35); dl.position.set(50,100,50); scene.add(dl);
+
+    const gP=[],gC=[],bP=[],bC=[];
+    const cT=new THREE.Color(0xc8d6e2),cB=new THREE.Color(0x0d1b2a),cG=new THREE.Color(0xedf2f7),cO=new THREE.Color();
+    for(const p of (data.allPoints||[])){
+      const x=p.x-50,y=p.y-50,z=p.z-50;
+      if(mode==='theo'){gP.push(x,y,z);gC.push(cT.r,cT.g,cT.b);}
+      else if(p.isBio){
+        bP.push(x,y,z);
+        if(mode==='onto'){bC.push(cB.r,cB.g,cB.b);}
+        else{cO.setStyle(data.speciesColors[p.speciesId]||'#0d1b2a');bC.push(cO.r,cO.g,cO.b);}
+      } else {gP.push(x,y,z);gC.push(cG.r,cG.g,cG.b);}
+    }
+    const mkPts=(pos,col,opa)=>{
+      if(!pos.length) return null;
+      const g=new THREE.BufferGeometry();
+      g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+      g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
+      const m=new THREE.PointsMaterial({size:ps,vertexColors:true,sizeAttenuation:true,transparent:true,map:circleTex,alphaTest:.01,opacity:opa,depthWrite:false});
+      const pt=new THREE.Points(g,m); scene.add(pt); return {g,m};
+    };
+    const gMesh=mkPts(gP,gC,op.ghost);
+    const bMesh=mode!=='theo'?mkPts(bP,bC,op.bio):null;
+    const hulls=[];
+    if(mode==='epi'&&data.speciesGroups&&taxo<96){
+      Object.keys(data.speciesGroups).forEach(sid=>{
+        const pts=data.speciesGroups[sid];
+        if(pts.length>3){
+          try{
+            const vecs=pts.map(p=>new THREE.Vector3(p.x-50,p.y-50,p.z-50));
+            const hg=new ConvexGeometry(vecs);
+            const cs=data.speciesColors[sid]||'#000';
+            const hm=new THREE.Mesh(hg,new THREE.MeshPhongMaterial({color:cs,transparent:true,opacity:op.bio*.12,side:THREE.DoubleSide,flatShading:true,depthWrite:false}));
+            scene.add(hm); hulls.push(hm);
+            const el=new THREE.LineSegments(new THREE.EdgesGeometry(hg),new THREE.LineBasicMaterial({color:cs,transparent:true,opacity:op.bio*.45,depthWrite:false}));
+            scene.add(el); hulls.push(el);
+          }catch(e){}
+        }
+      });
+    }
+    let raf;
+    const animate=()=>{raf=requestAnimationFrame(animate);controls.update();renderer.render(scene,camera);};
+    animate();
+    return ()=>{
+      cancelAnimationFrame(raf);
+      if(mount.current) mount.current.innerHTML='';
+      [gMesh,bMesh].forEach(m=>{if(!m)return;m.g.dispose();m.m.dispose();});
+      hulls.forEach(h=>{if(h.geometry)h.geometry.dispose();if(h.material)h.material.dispose();});
+      renderer.dispose();
+    };
+  }, [data,mode,autoRotate,sync,camPreset,ps,op,taxo]);
+
+  return <div ref={mount} style={{width:'100%',height:'100%',cursor:'move'}} />;
+};
+
+/* ── 2D VIEW ── */
+const V2D = ({ mode, data, ps, op, taxo }) => {
+  const G='#c8d6e2', B='#0d1b2a', Gh='#dce8f0';
+  return (
+    <svg viewBox="0 0 100 100" style={{width:'100%',height:'100%',background:'#fff'}}>
+      {mode!=='theo'&&data.allPoints.filter(p=>!p.isBio).map(p=><circle key={p.id} cx={p.x} cy={p.y} r={ps} fill={Gh} opacity={op.ghost}/>)}
+      {mode==='theo'&&data.allPoints.map(p=><circle key={p.id} cx={p.x} cy={p.y} r={ps} fill={G} opacity={op.ghost}/>)}
+      {mode==='onto'&&data.bioPoints.map(p=><circle key={p.id} cx={p.x} cy={p.y} r={ps*1.2} fill={B} opacity={op.bio}/>)}
+      {mode==='epi'&&data.speciesGroups&&Object.entries(data.speciesGroups).map(([id,pts])=>{
+        const col=data.speciesColors[id]||B;
+        let d='';
+        if(pts.length>2&&taxo<96){const h=hull2D(pts);if(h.length>0)d=`M${h[0].x} ${h[0].y}`+h.slice(1).map(p=>` L${p.x} ${p.y}`).join('')+' Z';}
+        return <g key={id}>
+          {d&&<path d={d} fill={col} fillOpacity={op.bio*.12} stroke={col} strokeWidth="0.4"/>}
+          {pts.map(p=><circle key={p.id} cx={p.x} cy={p.y} r={ps*1.2} fill={col} opacity={op.bio}/>)}
+        </g>;
+      })}
+    </svg>
+  );
+};
+
+/* ── DATA ── */
+const genData = ({ seed, is2D, N, bc, pat, nc, cs, disp, taxo }) => {
+  const rng  = i => { const s=seed+(is2D?9999:0); const x=Math.sin(s+i*12.9898)*43758.5453; return x-Math.floor(x); };
+  const crng = i => { const x=Math.sin(cs+i*43.123)*89123.123; return x-Math.floor(x); };
+  const attrs=[];
+  if(pat==='clumped'){
+    if(is2D){
+      const cols=nc<=2?2:Math.ceil(Math.sqrt(nc)), rows=Math.ceil(nc/cols);
+      const cw=80/cols, ch=80/rows;
+      for(let i=0;i<nc;i++){const col=i%cols,row=Math.floor(i/cols);attrs.push({x:10+col*cw+cw/2+(crng(i*2)-.5)*cw*.6,y:10+row*ch+ch/2+(crng(i*3)-.5)*ch*.6,z:50,r:15+crng(i*4)*10});}
+    } else {
+      for(let k=0;k<nc;k++) attrs.push({x:10+crng(k)*80,y:10+crng(k*2)*80,z:10+crng(k*3)*80,r:15+crng(k*4)*20});
+    }
+  }
+  const all=[], bio=[];
+  const th = 1-(bc/100);
+  for(let i=0;i<N;i++){
+    let x=Math.max(2,Math.min(98,rng(i*1.1)*100));
+    let y=Math.max(2,Math.min(98,rng(i*2.2)*100));
+    let z=is2D?0:Math.max(2,Math.min(98,rng(i*3.3)*100));
+    let isBio=false;
+    if(pat==='uniform') isBio=rng(i*9.9)<th;
+    else if(pat==='geometric'){
+      const d=is2D?Math.sqrt((x-50)**2+(y-50)**2):Math.sqrt((x-50)**2+(y-50)**2+(z-50)**2);
+      isBio=d<=48*Math.max(.1,th);
+    } else {
+      let minD=Infinity, nA=attrs[0];
+      for(const a of attrs){const d=is2D?Math.sqrt((x-a.x)**2+(y-a.y)**2):Math.sqrt((x-a.x)**2+(y-a.y)**2+(z-a.z)**2);if(d<minD){minD=d;nA=a;}}
+      isBio=(minD+(rng(i*13.13)-.5)*(disp/100)*25)<=nA.r*(th+.2)*1.5;
+    }
+    const pt={id:i,x,y,z,isBio,speciesId:-1};
+    all.push(pt); if(isBio) bio.push(pt);
+  }
+  const sC={}, sG={};
+  let nSpp=0;
+  if(bio.length>0){
+    const t=taxo/100;
+    if(t>.95){nSpp=bio.length;bio.forEach((p,i)=>{p.speciesId=i;sC[i]=getColor(i);sG[i]=[p];});}
+    else if(t<.05){nSpp=1;sG[0]=[];bio.forEach(p=>{p.speciesId=0;sC[0]=getColor(0);sG[0].push(p);});}
+    else {
+      nSpp=Math.max(1,Math.floor(1+(Math.min(bio.length,300)-1)*Math.pow(t,2)));
+      const centers=[], seen=new Set();
+      let att=0;
+      while(centers.length<nSpp&&att<5000){const i=Math.floor(rng(att+centers.length*99+seed+(is2D?999:0))*bio.length);if(!seen.has(i)){seen.add(i);centers.push(bio[i]);}att++;}
+      bio.forEach(p=>{
+        let cl=0,mD=Infinity;
+        centers.forEach((c,i)=>{const d=is2D?(p.x-c.x)**2+(p.y-c.y)**2:(p.x-c.x)**2+(p.y-c.y)**2+(p.z-c.z)**2;if(d<mD){mD=d;cl=i;}});
+        p.speciesId=cl; sC[cl]=getColor(cl); if(!sG[cl])sG[cl]=[]; sG[cl].push(p);
+      });
+    }
+  }
+  return {allPoints:all, bioPoints:bio, speciesColors:sC, speciesGroups:sG, nSpecies:nSpp};
+};
+
+/* ── APP ── */
+const App = () => {
+  const [seed,     setSeed]     = useState(42);
+  const [dim,      setDim]      = useState('3D');
+  const [rotate,   setRotate]   = useState(true);
+  const [clean,    setClean]    = useState(false);
+  const [hideD,    setHideD]    = useState(false);
+  const [camP,     setCamP]     = useState(null);
+  const [settOpen, setSettOpen] = useState(false);
+  const [infoOpen, setInfoOpen] = useState(false);
+  const [toast,    setToast]    = useState('');
+
+  /* sim */
+  const [N,    setN]    = useState(3000);
+  const [bc,   setBc]   = useState(60);
+  const [pat,  setPat]  = useState('clumped');
+  const [nc,   setNc]   = useState(4);
+  const [cs,   setCs]   = useState(1);
+  const [disp, setDisp] = useState(50);
+  const [taxo, setTaxo] = useState(30);
+
+  /* visual */
+  const [ps3,setPs3]=useState(3.5); const [og3,setOg3]=useState(.28); const [ob3,setOb3]=useState(1.0);
+  const [ps2,setPs2]=useState(.75); const [og2,setOg2]=useState(.4);  const [ob2,setOb2]=useState(1.0);
+
+  const args = { seed, N, bc, pat, nc, cs, disp, taxo };
+  const d3   = useMemo(()=>genData({...args,is2D:false}),[seed,N,bc,pat,nc,cs,disp,taxo]);
+  const d2   = useMemo(()=>genData({...args,is2D:true}), [seed,N,bc,pat,nc,cs,disp,taxo]);
+  const data = dim==='3D' ? d3 : d2;
+
+  const Ht = log2(data.allPoints.length);
+  const Ho = log2(data.bioPoints.length);
+  const He = log2(data.nSpecies);
+  const Io = Math.max(0,Ht-Ho);
+  const Ie = Math.max(0,Ho-He);
+  const Lf = data.nSpecies>0 ? data.bioPoints.length/data.nSpecies : Infinity;
+  const col = data.bioPoints.length>0?(1-data.nSpecies/data.bioPoints.length)*100:0;
+
+  const op  = dim==='3D'?{ghost:og3,bio:ob3}:{ghost:og2,bio:ob2};
+  const ps  = dim==='3D'?ps3:ps2;
+
+  const trigCam = useCallback(v=>{setCamP(null);setTimeout(()=>setCamP(v),15);},[]);
+
+  const showToast = msg=>{setToast(msg);setTimeout(()=>setToast(''),3000);};
+
+  const copyParams = () => {
+    const obj={params:{seed,N,bc,pat,nc,cs,disp,taxo},metrics:{H_Omega:f2(Ht),H_OmegaO:f2(Ho),H_OmegaE:f2(He),I_onto:f2(Io),I_epi:f2(Ie),L:f2(Lf),nSpecies:data.nSpecies}};
+    navigator.clipboard.writeText(JSON.stringify(obj,null,2)).then(()=>showToast('Parameters copied')).catch(()=>showToast('Copy failed'));
+  };
+
+  return (
+    <div className={hideD?'hide-data':''}>
+
+      {/* ── HEADER ── */}
+      <header className="hdr">
+        <div className="hdr-left">
+          <div>
+            <div className="hdr-title">Hierarchical Morphospace Simulator</div>
+            <div className="hdr-sub">González Casarrubios · Biological Theory · 2026</div>
+          </div>
+          <div className="hdr-divider"/>
+          {!clean && (
+            <div className="btn-group">
+              <button className={`btn ${dim==='2D'?'on':''}`} onClick={()=>setDim('2D')}>2D</button>
+              <button className={`btn ${dim==='3D'?'on':''}`} onClick={()=>setDim('3D')}>3D</button>
+            </div>
+          )}
+        </div>
+
+        <div className="hdr-controls">
+          {/* Settings */}
+          {!clean && (
+            <div className="pop-wrap">
+              <button className={`btn ${settOpen?'on':''}`} onClick={()=>setSettOpen(!settOpen)}>Settings</button>
+              <div className={`pop ${settOpen?'open':''}`}>
+                <div className="pop-title">{dim} visual settings</div>
+                {dim==='3D'?<>
+                  <div className="pop-row"><div className="ctrl-row"><span className="cl">Point size</span><span className="cv">{ps3}</span></div><input type="range" min="1" max="8" step="0.5" value={ps3} onChange={e=>setPs3(+e.target.value)}/></div>
+                  <div className="pop-row"><div className="ctrl-row"><span className="cl">Ghost opacity</span><span className="cv">{og3}</span></div><input type="range" min="0" max="1" step="0.05" value={og3} onChange={e=>setOg3(+e.target.value)}/></div>
+                  <div className="pop-row"><div className="ctrl-row"><span className="cl">Bio opacity</span><span className="cv">{ob3}</span></div><input type="range" min="0" max="1" step="0.05" value={ob3} onChange={e=>setOb3(+e.target.value)}/></div>
+                </>:<>
+                  <div className="pop-row"><div className="ctrl-row"><span className="cl">Point size</span><span className="cv">{ps2}</span></div><input type="range" min="0.1" max="3" step="0.1" value={ps2} onChange={e=>setPs2(+e.target.value)}/></div>
+                  <div className="pop-row"><div className="ctrl-row"><span className="cl">Ghost opacity</span><span className="cv">{og2}</span></div><input type="range" min="0" max="1" step="0.05" value={og2} onChange={e=>setOg2(+e.target.value)}/></div>
+                  <div className="pop-row"><div className="ctrl-row"><span className="cl">Bio opacity</span><span className="cv">{ob2}</span></div><input type="range" min="0" max="1" step="0.05" value={ob2} onChange={e=>setOb2(+e.target.value)}/></div>
+                </>}
+                <div style={{borderTop:'1.5px solid var(--ink-faint)',marginTop:'.6rem',paddingTop:'.6rem'}}>
+                  <button className="btn" style={{width:'100%'}} onClick={copyParams}>Copy parameters</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Camera presets (clean only, 3D only) */}
+          {clean && dim==='3D' && (
+            <div className="btn-group">
+              {[['iso','ISO'],['top','TOP'],['front','FNT'],['side','SDE'],['h34','¾H'],['l34','¾L']].map(([v,l])=>(
+                <button key={v} className="btn" onClick={()=>trigCam(v)}>{l}</button>
+              ))}
+            </div>
+          )}
+
+          {clean && (
+            <button className={`btn ${hideD?'on':''}`} onClick={()=>setHideD(!hideD)}>
+              {hideD?'Show data':'Hide data'}
+            </button>
+          )}
+
+          <button className={`btn ${clean?'on':''}`} onClick={()=>setClean(!clean)}>
+            {clean?'Configure':'Clean view'}
+          </button>
+
+          {!clean && dim==='3D' && (
+            <button className={`btn ${rotate?'on':''}`} onClick={()=>setRotate(!rotate)}>
+              {rotate?'Pause':'Rotate'}
+            </button>
+          )}
+
+          {!clean && (
+            <button className="btn pri" onClick={()=>setSeed(s=>s+1)}>Re-sample</button>
+          )}
+
+          <button className="btn" onClick={()=>setInfoOpen(true)}>Info</button>
+        </div>
+      </header>
+
+      {/* ── BODY ── */}
+      <main className="page">
+        <div className="grid3">
+
+          {/* ── THEORETICAL ── */}
+          <div className="panel">
+            <div className="panel-hdr">
+              <div className="h-row">
+                <div className="panel-title">Theoretical Morphospace</div>
+                <div className="h-value">{f2(Ht)} bits</div>
+              </div>
+              <EBar cur={Ht} max={Ht} cls="eb-theo"/>
+              <Formula tex="\Omega = \prod_{i=1}^{n} D_i"/>
+            </div>
+
+            <div className="canvas-wrap">
+              {dim==='3D'
+                ?<V3D id="theo" mode="theo" data={data} autoRotate={rotate} sync={clean} camPreset={camP} ps={ps} op={op} taxo={taxo}/>
+                :<V2D mode="theo" data={data} ps={ps2} op={op} taxo={taxo}/>}
+            </div>
+
+            {!clean && (
+              <div className="ctrl-box">
+                <div className="ctrl-row"><span className="cl">Sampling density (N)</span><span className="cv">{N.toLocaleString()}</span></div>
+                <input type="range" min="500" max="10000" step="100" value={N} onChange={e=>setN(+e.target.value)}/>
+              </div>
+            )}
+          </div>
+
+          {/* ── ONTOLOGICAL ── */}
+          <div className="panel">
+            <div className="panel-hdr">
+              <div className="h-row">
+                <div className="panel-title c-onto">Ontological Morphospace</div>
+                <div className="h-value">{f2(Ho)} bits</div>
+              </div>
+              <EBar cur={Ho} max={Ht} cls="eb-onto"/>
+              <Formula tex="\Omega_O = \{x \in \Omega \mid \forall\, c \in \mathcal{C}_O,\; c(x) = \mathrm{True}\}"/>
+            </div>
+
+            <div className="canvas-wrap">
+              {dim==='3D'
+                ?<V3D id="onto" mode="onto" data={data} autoRotate={rotate} sync={clean} camPreset={camP} ps={ps} op={op} taxo={taxo}/>
+                :<V2D mode="onto" data={data} ps={ps2} op={op} taxo={taxo}/>}
+            </div>
+            <div className="gap-strip gs-onto">
+              <span className="gap-strip-label">Ontological gap</span>
+              <span>−{f2(Io)} bits</span>
+            </div>
+
+            {!clean && (
+              <div className="ctrl-box">
+                <div className="ctrl-row"><span className="cl">Viability constraint</span><span className="cv cv-onto">{100-bc}% viable</span></div>
+                <input type="range" min="0" max="95" step="1" value={bc} onChange={e=>setBc(+e.target.value)}/>
+                <div><div className="ctrl-row" style={{marginBottom:'.35rem'}}><span className="cl">Distribution pattern</span></div>
+                <div className="pat-btns">
+                  {['uniform','geometric','clumped'].map(p=>(
+                    <button key={p} className={`pat-btn ${pat===p?'on':''}`} onClick={()=>setPat(p)}>{p}</button>
+                  ))}
+                </div></div>
+                {pat==='clumped' && (
+                  <div style={{paddingTop:'.6rem',borderTop:'1.5px solid var(--ink-faint)',display:'flex',flexDirection:'column',gap:'.6rem'}}>
+                    <div className="ctrl-row">
+                      <span className="cl">Evolutionary nuclei</span>
+                      <button className="btn" style={{padding:'.28rem .6rem'}} onClick={()=>setCs(s=>s+1)}>Re-roll</button>
+                    </div>
+                    <div className="btn-group" style={{alignSelf:'flex-start'}}>
+                      {[3,4,5,6].map(n=><button key={n} className={`btn ${nc===n?'on':''}`} onClick={()=>setNc(n)}>{n}</button>)}
+                    </div>
+                    <div className="ctrl-row"><span className="cl">Nuclei dispersion</span><span className="cv">{disp}%</span></div>
+                    <input type="range" min="0" max="100" step="5" value={disp} onChange={e=>setDisp(+e.target.value)}/>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* ── EPISTEMIC ── */}
+          <div className="panel">
+            <div className="panel-hdr">
+              <div className="h-row">
+                <div className="panel-title c-epi">Epistemic Morphospace</div>
+                <div className="h-value">{f2(He)} bits</div>
+              </div>
+              <EBar cur={He} max={Ht} cls="eb-epi"/>
+              <Formula tex="\Omega_E = \Omega_O /{\sim_E}"/>
+            </div>
+
+            <div className="canvas-wrap">
+              {dim==='3D'
+                ?<V3D id="epi" mode="epi" data={data} autoRotate={rotate} sync={clean} camPreset={camP} ps={ps} op={op} taxo={taxo}/>
+                :<V2D mode="epi" data={data} ps={ps2} op={op} taxo={taxo}/>}
+            </div>
+            <div className="gap-strip gs-epi">
+              <span className="gap-strip-label">Epistemic gap</span>
+              <span>−{f2(Ie)} bits</span>
+            </div>
+
+            {!clean && (
+              <div className="ctrl-box">
+                <div className="ctrl-row">
+                  <span className="cl">Taxonomic granularity</span>
+                  <span className={`cv ${taxo>=96?'ok':''}`}>{taxo>=96?'Total resolution':taxo<=2?'1 species':`${data.nSpecies} spp.`}</span>
+                </div>
+                <div style={{display:'flex',alignItems:'center',gap:'.5rem'}}>
+                  <span style={{fontFamily:'var(--mono)',fontSize:'.62rem',color:'var(--ink-light)',textTransform:'uppercase',letterSpacing:'.08em',whiteSpace:'nowrap'}}>Lumper</span>
+                  <input type="range" min="0" max="100" step="1" value={taxo} onChange={e=>setTaxo(+e.target.value)} style={{flex:1}}/>
+                  <span style={{fontFamily:'var(--mono)',fontSize:'.62rem',color:'var(--ink-light)',textTransform:'uppercase',letterSpacing:'.08em',whiteSpace:'nowrap'}}>Splitter</span>
+                </div>
+                <div className="metrics-grid">
+                  <div className="mc">
+                    <div className="mc-label">Lumping factor (L)</div>
+                    <div className={`mc-val ${Lf>10?'warn':'ok'}`}>{isFinite(Lf)?f2(Lf):'∞'}</div>
+                    <div className="mc-sub">{Lf<=1.5?'High resolution':'Low resolution'}</div>
+                  </div>
+                  <div className="mc">
+                    <div className="mc-label">Epistemic gap (I_E)</div>
+                    <div className="mc-val">{f2(Ie)} bits</div>
+                    <div className="mc-sub">= log₂(L)</div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+        </div>
+      </main>
+
+      {/* ── STATUS BAR ── */}
+      <div className="statusbar">
+        <div className="si"><span className="sl">H(Ω)</span><span className="sv">{f2(Ht)} bits</span></div>
+        <div className="si"><span className="sl">H(Ω_O)</span><span className="sv">{f2(Ho)} bits</span></div>
+        <div className="si"><span className="sl">H(Ω_E)</span><span className="sv">{f2(He)} bits</span></div>
+        <div className="si"><span className="sl">I_onto</span><span className="sv">−{f2(Io)} bits</span></div>
+        <div className="si"><span className="sl">I_epi</span><span className="sv">−{f2(Ie)} bits</span></div>
+        <div className="si"><span className="sl">L</span><span className="sv">{isFinite(Lf)?f2(Lf):'∞'}</span></div>
+        <div className="si"><span className="sl">N</span><span className="sv">{N.toLocaleString()}</span></div>
+        <div className="si" style={{marginLeft:'auto'}}><span className="sl">Seed</span><span className="sv">{seed}</span></div>
+      </div>
+
+    {/* ── INFO MODAL ── */}
+{infoOpen && (
+  <div className="overlay" onClick={() => setInfoOpen(false)}>
+    <div className="modal" style={{ maxWidth: '620px' }} onClick={e => e.stopPropagation()}>
+      <button className="modal-close" onClick={() => setInfoOpen(false)}>✕</button>
+      <div className="modal-ey">Interactive Supplementary Material · Online Resource 1</div>
+      <div className="modal-h">Hierarchical Morphospace Simulator</div>
+
+      <div className="modal-body">
+        <p>This simulator constitutes the Online Resource 1 for the paper <em>How much diversity is lost in classification? Morphospaces as a metric of taxonomic impact</em> (González Casarrubios, 2026, <em>Biological Theory</em>). The software serves as a functional proof-of-concept for the formal framework presented in the manuscript.</p>
+
+        <p><strong>Hierarchical Levels.</strong> Biological variety is formally modeled across three nested spaces, each representing a distinct domain of constraints:</p>
+        <ul>
+          <li><strong>Theoretical Morphospace (Ω):</strong> The full combinatorial space encompassing all possible morphotypes. It represents pure structural potency, defined solely by the chosen set of characters regardless of biological viability.</li>
+          <li><strong>Ontological Morphospace (Ω<sub>O</sub>):</strong> The biologically viable subset of the theoretical morphospace. It is constrained by developmental, physical, and ecological boundaries, containing those forms capable of actual existence.</li>
+          <li><strong>Epistemic Morphospace (Ω<sub>E</sub>):</strong> The quotient space induced by a taxonomic equivalence relation over the ontological space. It groups individual morphotypes into discrete species categories, representing diversity as formally described and classified.</li>
+        </ul>
+
+        <p><strong>Mathematical Metrics.</strong> The <em>Lumping Factor</em> (L = |Ω<sub>O</sub>| / |Ω<sub>E</sub>|) measures the average number of distinct biological morphotypes collapsed into a single recognized taxon. The <em>Epistemic Gap</em> (I<sub>E</sub> = log₂(L)) quantifies this informational cost in bits, representing the morphological distinctions that a given taxonomic framework renders invisible.</p>
+
+        <p><strong>Operational Controls.</strong> In <em>Configure</em> mode, parameters can be adjusted independently. You can set the sampling density of the theoretical space, select how biological constraints filter it (via uniform, geometric, or clumped nuclei patterns), and modify taxonomic granularity along the Lumper–Splitter axis. The <em>Re-sample</em> action generates a new stochastic realization. Switch to <em>Clean View</em> to access an interface with standardized camera positions (ISO, TOP, FNT, SDE, ¾H, ¾L) and a data-masking option. The 2D/3D toggle alternates between flat vector geometry and interactive three-dimensional point clouds.</p>
+      </div>
+            
+      {/* Required Springer Supplementary Information Metadata */}
+      <div style={{ padding: '10px 14px', background: '#f1f5f9', borderRadius: '6px', fontSize: '11px', marginBottom: '16px', border: '1px solid #e2e8f0', color: '#475569', lineHeight: '1.5' }}>
+        <strong>Article Title:</strong> How much diversity is lost in classification? Morphospaces as a metric of taxonomic impact<br />
+        <strong>Journal:</strong> Biological Theory<br />
+        <strong>Author:</strong> Alberto González Casarrubios<br />
+        <strong>Affiliation:</strong> Complutense University of Madrid (UCM), Faculty of Biology, Department of Biodiversity, Ecology and Evolution (BEE), Madrid, Spain<br />
+        <strong>Corresponding Author E-mail:</strong> albert23@ucm.es
+      </div>
+
+      <div className="modal-ref">
+        <span className="modal-ref-lbl">Citation</span>
+        <p>González Casarrubios, A. (2026). How much diversity is lost in classification? Morphospaces as a metric of taxonomic impact. <em>Biological Theory</em>. https://doi.org/10.1007/s13752-026-XXXXX-X</p>
+        <p>González Casarrubios, A. (2026). <em>Hierarchical Morphospace Simulator</em> (Version 1.0) [Computer software / Supplementary Material S1]. <em>Biological Theory</em>.</p>
+      </div>
+    </div>
+  </div>
+)}
+
+      {/* ── TOAST ── */}
+      {toast && <div className="toast">{toast}</div>}
+    </div>
+  );
+};
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
