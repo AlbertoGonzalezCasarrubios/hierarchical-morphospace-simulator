@@ -5,7 +5,9 @@
 [![License: CC BY 4.0](https://img.shields.io/badge/License-CC_BY_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
 
 This repository constitutes the **Online Supplementary Material** for the paper:  
-> *"How much diversity is lost in classification? Morphospaces as a metric of taxonomic impact"* > **Journal:** *Biological Theory* (2026) | **Author:** Alberto González-Casarrubios
+> *"How much diversity is lost in classification? Morphospaces as a metric of taxonomic impact"* > **Journal:** *Biological Theory* (2026) | **Author:** Alberto González-Casarrubios | **DOI:** https://doi.org/10.1007/s13752-026-XXXXX-X
+
+---
 
 ### Project Links
 * **Interactive Live Simulation:** [GitHub Pages](https://albertogonzalezcasarrubios.github.io/hierarchical-morphospace-simulator/)
