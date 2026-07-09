@@ -4,16 +4,13 @@
 [![Zenodo DOI](https://img.shields.io/badge/Zenodo-10.5281/zenodo.20693984-blue.svg)](https://doi.org/10.5281/zenodo.20693984)
 [![License: CC BY 4.0](https://img.shields.io/badge/License-CC_BY_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
 
+This repository constitutes the **Online Supplementary Material** for the paper:  
+> *"How much diversity is lost in classification? Morphospaces as a metric of taxonomic impact"* > **Journal:** *Biological Theory* (2026) | **Author:** Alberto González-Casarrubios
+
 ### Project Links
 * **Interactive Live Simulation:** [GitHub Pages](https://albertogonzalezcasarrubios.github.io/hierarchical-morphospace-simulator/)
 * **Permanent Code Archive:** [Repository on Zenodo](https://doi.org/10.5281/zenodo.20693984)
-* **Main Research Paper:** [Biological Theory (DOI)](https://doi.org/10.1007/s13752-026-XXXXX-X)
-
----
-
-### Online Resource
-This repository constitutes the **Online Supplementary Material** for the paper:  
-> *"How much diversity is lost in classification? Morphospaces as a metric of taxonomic impact"* > **Journal:** *Biological Theory* (2026) | **Author:** Alberto González-Casarrubios
+* **Research Paper:** [Biological Theory (DOI)](https://doi.org/10.1007/s13752-026-XXXXX-X)
 
 ---
 
