@@ -657,7 +657,7 @@ const App = () => {
 
             {!clean && (
               <div className="ctrl-box">
-                <div className="ctrl-row"><span className="cl">Viability constraint</span><span className="cv cv-onto">{100-bc}% viable</span></div>
+                <div className="ctrl-row"><span className="cl">Ontological constraints</span><span className="cv cv-onto">{100-bc}% viable</span></div>
                 <input type="range" min="0" max="95" step="1" value={bc} onChange={e=>setBc(+e.target.value)}/>
                 <div><div className="ctrl-row" style={{marginBottom:'.35rem'}}><span className="cl">Distribution pattern</span></div>
                 <div className="pat-btns">
@@ -706,7 +706,7 @@ const App = () => {
             {!clean && (
               <div className="ctrl-box">
                 <div className="ctrl-row">
-                  <span className="cl">Taxonomic granularity</span>
+                  <span className="cl">Epistemic constraints</span>
                   <span className={`cv ${taxo>=96?'ok':''}`}>{taxo>=96?'Total resolution':taxo<=2?'1 species':`${data.nSpecies} spp.`}</span>
                 </div>
                 <div style={{display:'flex',alignItems:'center',gap:'.5rem'}}>
@@ -759,7 +759,7 @@ const App = () => {
         <p><strong>Hierarchical Levels.</strong> Biological variety is formally modeled across three nested spaces, each representing a distinct domain of constraints:</p>
         <ul>
           <li><strong>Theoretical Morphospace (Ω):</strong> The full combinatorial space encompassing all possible morphotypes. It represents pure structural potency, defined solely by the chosen set of characters regardless of biological viability.</li>
-          <li><strong>Ontological Morphospace (Ω<sub>O</sub>):</strong> The biologically viable subset of the theoretical morphospace. It is constrained by developmental, physical, and ecological boundaries, containing those forms capable of actual existence.</li>
+          <li><strong>Ontological Morphospace (Ω<sub>O</sub>):</strong> The biologically viable subset of the theoretical morphospace. It is constrained by developmental, physical, and ecological boundaries, containing those forms that are biologically coherent and could in principle exist, regardless of whether they appear in the current or fossil record..</li>
           <li><strong>Epistemic Morphospace (Ω<sub>E</sub>):</strong> The quotient space induced by a taxonomic equivalence relation over the ontological space. It groups individual morphotypes into discrete species categories, representing diversity as formally described and classified.</li>
         </ul>
 
@@ -772,15 +772,15 @@ const App = () => {
       <div style={{ padding: '10px 14px', background: '#f1f5f9', borderRadius: '6px', fontSize: '11px', marginBottom: '16px', border: '1px solid #e2e8f0', color: '#475569', lineHeight: '1.5' }}>
         <strong>Article Title:</strong> How much diversity is lost in classification? Morphospaces as a metric of taxonomic impact<br />
         <strong>Journal:</strong> Biological Theory<br />
-        <strong>Author:</strong> Alberto González Casarrubios<br />
+        <strong>Author:</strong> Alberto González-Casarrubios<br />
         <strong>Affiliation:</strong> Complutense University of Madrid (UCM), Faculty of Biology, Department of Biodiversity, Ecology and Evolution (BEE), Madrid, Spain<br />
         <strong>Corresponding Author E-mail:</strong> albert23@ucm.es
       </div>
 
       <div className="modal-ref">
         <span className="modal-ref-lbl">Citation</span>
-        <p>González Casarrubios, A. (2026). How much diversity is lost in classification? Morphospaces as a metric of taxonomic impact. <em>Biological Theory</em>. https://doi.org/10.1007/s13752-026-XXXXX-X</p>
-        <p>González Casarrubios, A. (2026). <em>Hierarchical Morphospace Simulator</em> (Version 1.0) [Computer software / Supplementary Material S1]. <em>Biological Theory</em>.</p>
+        <p>González-Casarrubios, A. (2026). How much diversity is lost in classification? Morphospaces as a metric of taxonomic impact. <em>Biological Theory</em>. https://doi.org/10.1007/s13752-026-00549-4</p>
+        <p>González-Casarrubios, A. (2026). <em>Hierarchical Morphospace Simulator</em> (Version 1.0)[Computer software / Online Resource 1]. Zenodo. https://doi.org/10.5281/zenodo.20693984
       </div>
     </div>
   </div>
