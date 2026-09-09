@@ -52,7 +52,7 @@ The interface consists of a control panel and a visualization canvas:
 If you use this simulation, its source code, or the theoretical framework in your research, please cite both the paper and the repository:
 
 #### Research Paper:
-González-Casarrubios, A. (2026). How much diversity is lost in classification? Morphospaces as a metric of taxonomic impact. Biological Theory. [[https://doi.org/10.1007/s13752-026-XXXXX-X](https://doi.org/10.1007/s13752-026-00549-4)]
+González-Casarrubios, A. (2026). How much diversity is lost in classification? Morphospaces as a metric of taxonomic impact. Biological Theory. [[https://doi.org/10.1007/s13752-026-00549-4](https://doi.org/10.1007/s13752-026-00549-4)]
 
 #### Software Repository (Zenodo):
 González-Casarrubios, A. (2026). Hierarchical Morphospace Simulator (v1.0). In Biological Theory. Zenodo. [https://doi.org/10.5281/zenodo.20693984]
